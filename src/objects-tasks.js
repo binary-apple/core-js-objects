@@ -379,33 +379,136 @@ function group(/* array, keySelector, valueSelector */) {
  *  For more examples see unit tests.
  */
 
+class BaseCssSelector {
+  constructor() {
+    this.cssSelector = '';
+    this.elCnt = 0;
+    this.idCnt = 0;
+    this.classCnt = 0;
+    this.attrCnt = 0;
+    this.psClassCnt = 0;
+    this.psElCnt = 0;
+  }
+
+  element(value) {
+    this.elCnt += 1;
+    if (this.elCnt > 1) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    if (
+      this.idCnt ||
+      this.classCnt ||
+      this.attrCnt ||
+      this.psClassCnt ||
+      this.psElCnt
+    ) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    this.cssSelector += value;
+    return this;
+  }
+
+  id(value) {
+    this.idCnt += 1;
+    if (this.idCnt > 1) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    if (this.classCnt || this.attrCnt || this.psClassCnt || this.psElCnt) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    this.cssSelector += `#${value}`;
+    return this;
+  }
+
+  class(value) {
+    this.classCnt += 1;
+    if (this.attrCnt || this.psClassCnt || this.psElCnt) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    this.cssSelector += `.${value}`;
+    return this;
+  }
+
+  attr(value) {
+    this.attrCnt += 1;
+    if (this.psClassCnt || this.psElCnt) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    this.cssSelector += `[${value}]`;
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.psClassCnt += 1;
+    if (this.psElCnt) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    this.cssSelector += `:${value}`;
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.psElCnt += 1;
+    if (this.psElCnt > 1) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    this.cssSelector += `::${value}`;
+    return this;
+  }
+
+  combine(selector1, combinator, selector2) {
+    this.cssSelector = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return this;
+  }
+
+  stringify() {
+    return this.cssSelector;
+  }
+}
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    return new BaseCssSelector().element(value);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return new BaseCssSelector().id(value);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return new BaseCssSelector().class(value);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new BaseCssSelector().attr(value);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return new BaseCssSelector().pseudoClass(value);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return new BaseCssSelector().pseudoElement(value);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    return new BaseCssSelector().combine(selector1, combinator, selector2);
   },
 };
 
